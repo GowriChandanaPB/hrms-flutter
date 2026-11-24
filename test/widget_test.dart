@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -24,32 +23,33 @@ void main() {
   testWidgets('Home renders employee data and pending sync state', (
     tester,
   ) async {
-    final local = _FakeLocal();
+    final local = _FakeLocal()
+      ..events.addAll([
+        _testEvent(id: 'pending-1', status: AttendanceSyncStatus.pending),
+        _testEvent(id: 'synced-1', status: AttendanceSyncStatus.synced),
+        _testEvent(id: 'synced-2', status: AttendanceSyncStatus.synced),
+      ]);
+
     final remote = _FakeRemote();
 
     final connectivity = _FakeConnectivity()
       ..current = [ConnectivityResult.wifi];
 
-    final monitor = ConnectivityMonitor(
-      connectivity: connectivity,
-    );
+    final monitor = ConnectivityMonitor(connectivity: connectivity);
 
     final attendance = _TestAttendanceState(local, remote);
 
     final coordinator = AttendanceSyncCoordinator(
       connectivity: monitor,
-      syncService: AttendanceSyncService(
-        local: local,
-        remote: remote,
-      ),
+      syncService: AttendanceSyncService(local: local, remote: remote),
       local: local,
-    )
-      ..pendingCount = 1
-      ..syncedCount = 2;
+    );
 
     try {
-      // Allow the connectivity monitor to finish initialization.
-      await Future<void>.delayed(Duration.zero);
+      // Calculate pending and synced counts from the fake local data.
+      await coordinator.refreshCounts();
+      expect(coordinator.pendingCount, 1);
+      expect(coordinator.syncedCount, 2);
 
       await tester.pumpWidget(
         MultiProvider(
@@ -60,12 +60,8 @@ void main() {
             Provider<EmployeeRepository>.value(
               value: _FakeEmployeeRepository(),
             ),
-            ChangeNotifierProvider<AttendanceState>.value(
-              value: attendance,
-            ),
-            ChangeNotifierProvider<ConnectivityMonitor>.value(
-              value: monitor,
-            ),
+            ChangeNotifierProvider<AttendanceState>.value(value: attendance),
+            ChangeNotifierProvider<ConnectivityMonitor>.value(value: monitor),
             Provider<LeaveService>.value(
               value: LeaveService(
                 localDataSource: local,
@@ -81,16 +77,21 @@ void main() {
         ),
       );
 
-      // Render the first frame and allow the dashboard animations to progress.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
       expect(find.text('Your Overview'), findsOneWidget);
       expect(find.text('Alex Morgan'), findsOneWidget);
+      // The overview cards are below the initial test viewport. Scroll them
+      // into view so the lazy sliver builds SyncStatusCard before asserting.
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, -500),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('1 Pending · 2 Synced'), findsOneWidget);
       expect(find.text('Pending Sync'), findsOneWidget);
     } finally {
-      // Unmount widgets first so their timers and animations are disposed.
       await tester.pumpWidget(const SizedBox.shrink());
 
       coordinator.dispose();
@@ -102,24 +103,27 @@ void main() {
   });
 }
 
-class _TestAttendanceState extends AttendanceState {
-  _TestAttendanceState(
-    super.local,
-    super.remote,
+AttendanceEventModel _testEvent({
+  required String id,
+  required AttendanceSyncStatus status,
+}) {
+  return AttendanceEventModel(
+    id: id,
+    employeeId: 'REBS-1024',
+    type: AttendanceEventType.checkIn,
+    timestamp: DateTime(2026, 11, 24, 9),
+    latitude: 0,
+    longitude: 0,
+    syncStatus: status,
   );
+}
+
+class _TestAttendanceState extends AttendanceState {
+  _TestAttendanceState(super.local, super.remote);
 
   @override
-  Future<void> refresh({
-    int? year,
-    int? month,
-    bool fetchRemote = true,
-  }) {
-    // Dashboard widget tests use local data only.
-    return super.refresh(
-      year: year,
-      month: month,
-      fetchRemote: false,
-    );
+  Future<void> refresh({int? year, int? month, bool fetchRemote = true}) {
+    return super.refresh(year: year, month: month, fetchRemote: false);
   }
 }
 
@@ -155,17 +159,12 @@ class _FakeLocal implements HrmsLocalDataSource {
   @override
   Future<List<AttendanceEventModel>> getPendingAttendanceEvents() async {
     return events
-        .where(
-          (event) =>
-              event.syncStatus == AttendanceSyncStatus.pending,
-        )
+        .where((event) => event.syncStatus == AttendanceSyncStatus.pending)
         .toList();
   }
 
   @override
-  Future<void> saveAttendanceEvent(
-    AttendanceEventModel event,
-  ) async {
+  Future<void> saveAttendanceEvent(AttendanceEventModel event) async {
     events.add(event);
   }
 
@@ -174,9 +173,7 @@ class _FakeLocal implements HrmsLocalDataSource {
     String eventId,
     AttendanceSyncStatus status,
   ) async {
-    final index = events.indexWhere(
-      (event) => event.id == eventId,
-    );
+    final index = events.indexWhere((event) => event.id == eventId);
 
     if (index < 0) return;
 
@@ -199,16 +196,12 @@ class _FakeLocal implements HrmsLocalDataSource {
   }
 
   @override
-  Future<void> saveLeaveBalance(
-    LeaveBalanceModel value,
-  ) async {
+  Future<void> saveLeaveBalance(LeaveBalanceModel value) async {
     balance = value;
   }
 
   @override
-  Future<void> saveLeaveRequest(
-    LeaveRequestModel request,
-  ) async {}
+  Future<void> saveLeaveRequest(LeaveRequestModel request) async {}
 
   @override
   Future<List<LeaveRequestModel>> getLeaveRequests() async {
@@ -232,10 +225,7 @@ class _FakeRemote implements HrmsRemoteDataSource {
 
   @override
   Future<LeaveBalanceModel> getLeaveBalance() async {
-    return const LeaveBalanceModel(
-      casualLeave: 8,
-      sickLeave: 8,
-    );
+    return const LeaveBalanceModel(casualLeave: 8, sickLeave: 8);
   }
 
   @override
@@ -260,9 +250,7 @@ class _FakeConnectivity implements Connectivity {
   final StreamController<List<ConnectivityResult>> controller =
       StreamController<List<ConnectivityResult>>.broadcast();
 
-  List<ConnectivityResult> current = [
-    ConnectivityResult.none,
-  ];
+  List<ConnectivityResult> current = [ConnectivityResult.none];
 
   @override
   Future<List<ConnectivityResult>> checkConnectivity() async {

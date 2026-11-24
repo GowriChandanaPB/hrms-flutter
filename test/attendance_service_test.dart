@@ -6,8 +6,7 @@ import 'package:hrms/data/local/hrms_local_data_source.dart';
 import 'package:hrms/data/models/attendance_event_model.dart';
 import 'package:hrms/features/attendance/services/attendance_service.dart';
 import 'package:hrms/features/attendance/services/location_service.dart';
-
-final _testNow = DateTime.utc(2026, 11, 24, 3, 0);
+DateTime _testNow = DateTime.utc(2026, 11, 24, 3, 0);
 
 void main() {
   test('company day follows configured Asia/Kolkata boundary', () {
@@ -104,6 +103,36 @@ void main() {
       expect(local.events, hasLength(2));
     },
   );
+  test('allows check-in after company midnight, even if UTC date differs', () async {
+  final local = _FakeLocal([
+    _event(
+      id: 'previous-day-check-in',
+      type: AttendanceEventType.checkIn,
+      timestamp: DateTime.utc(2026, 11, 23, 18, 0),
+    ),
+    _event(
+      id: 'previous-day-check-out',
+      type: AttendanceEventType.checkOut,
+      timestamp: DateTime.utc(2026, 11, 23, 18, 20),
+    ),
+  ]);
+
+  final service = AttendanceService(
+    localDataSource: local,
+    locationService: LocationService(
+      platform: _FakeLocationPlatform(),
+    ),
+    clock: () => DateTime.utc(2026, 11, 23, 18, 30),
+  );
+
+  final event = await service.checkIn();
+
+  expect(event.type, AttendanceEventType.checkIn);
+  expect(
+    companyCalendarDate(event.timestamp),
+    DateTime(2026, 11, 24),
+  );
+});
 }
 
 AttendanceService _service(_FakeLocal local) => AttendanceService(

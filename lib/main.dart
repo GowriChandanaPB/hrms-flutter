@@ -22,6 +22,7 @@ Future<void> main() async {
   await _requestLocationPermission();
 
   final localDataSource = HrmsLocalDataSource();
+  final DateTime Function() clock = DateTime.now;
   runApp(
     MultiProvider(
       providers: [
@@ -40,6 +41,7 @@ Future<void> main() async {
           create: (context) => AttendanceState(
             localDataSource,
             context.read<HrmsRemoteDataSource>(),
+            clock: clock,
           )..refresh(),
         ),
         ChangeNotifierProvider(create: (_) => ConnectivityMonitor()),
@@ -50,6 +52,7 @@ Future<void> main() async {
               AttendanceService(
                 localDataSource: local,
                 locationService: location,
+                clock: clock,
               ),
         ),
         ProxyProvider3<
