@@ -45,6 +45,7 @@ Open a terminal:
 cd mock_api
 npm install
 node server.js
+npm run
 ```
 
 Keep the API process running while testing the application.
