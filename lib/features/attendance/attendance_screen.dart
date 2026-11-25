@@ -28,10 +28,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadMonth());
   }
 
-  Future<void> _loadMonth() => context.read<AttendanceState>().refresh(
-    year: _displayedMonth.year,
-    month: _displayedMonth.month,
-  );
+  Future<void> _loadMonth() async {
+    await context.read<AttendanceState>().refresh(
+      year: _displayedMonth.year,
+      month: _displayedMonth.month,
+    );
+
+    if (!mounted) return;
+
+    final events = context.read<AttendanceState>().events;
+    final monthEvents = events.where((event) {
+      final date = companyCalendarDate(event.timestamp);
+      return date.year == _displayedMonth.year &&
+          date.month == _displayedMonth.month;
+    }).toList()
+      ..sort((first, second) => second.timestamp.compareTo(first.timestamp));
+
+    if (monthEvents.isNotEmpty) {
+      setState(() {
+        _selectedDate = companyCalendarDate(monthEvents.first.timestamp);
+      });
+    }
+  }
 
   Map<String, _AttendanceRecord> _records(List<AttendanceEventModel> events) {
     final grouped = <String, List<AttendanceEventModel>>{};
