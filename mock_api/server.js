@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
@@ -12,23 +11,114 @@ const EMPLOYEE_ID = "REBS-1024";
 
 // PG configured as the attendance office.
 const OFFICE_LOCATION = {
-  latitude: 12.915577,
-  longitude: 77.628337,
+  latitude: 10.027786,
+  longitude: 76.336622,
   radiusInMetres: 200,
   timezone: "Asia/Kolkata",
 };
 
 const employee = {
   id: EMPLOYEE_ID,
-  name: "Alex Morgan",
-  department: "Engineering",
+  name: "Gowri",
+  department: "Mobile",
   designation: "Flutter Developer",
   email: "alex@rebs.example",
 };
 
 const office = { ...OFFICE_LOCATION };
 
-let attendanceEvents = [];
+let attendanceEvents = [
+  {
+    id: "demo-2026-11-24-check-in",
+    employeeId: EMPLOYEE_ID,
+    type: "check_in",
+    timestamp: "2026-11-24T03:45:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-24-check-out",
+    employeeId: EMPLOYEE_ID,
+    type: "check_out",
+    timestamp: "2026-11-24T12:40:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-23-check-in",
+    employeeId: EMPLOYEE_ID,
+    type: "check_in",
+    timestamp: "2026-11-23T03:30:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-23-check-out",
+    employeeId: EMPLOYEE_ID,
+    type: "check_out",
+    timestamp: "2026-11-23T12:35:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-21-check-in",
+    employeeId: EMPLOYEE_ID,
+    type: "check_in",
+    timestamp: "2026-11-21T03:40:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-21-check-out",
+    employeeId: EMPLOYEE_ID,
+    type: "check_out",
+    timestamp: "2026-11-21T12:30:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-20-check-in",
+    employeeId: EMPLOYEE_ID,
+    type: "check_in",
+    timestamp: "2026-11-20T03:35:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-20-check-out",
+    employeeId: EMPLOYEE_ID,
+    type: "check_out",
+    timestamp: "2026-11-20T12:25:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-19-check-in",
+    employeeId: EMPLOYEE_ID,
+    type: "check_in",
+    timestamp: "2026-11-19T03:50:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+  {
+    id: "demo-2026-11-19-check-out",
+    employeeId: EMPLOYEE_ID,
+    type: "check_out",
+    timestamp: "2026-11-19T12:45:00.000Z",
+    latitude: OFFICE_LOCATION.latitude,
+    longitude: OFFICE_LOCATION.longitude,
+    syncStatus: "synced",
+  },
+];
 let leaveRequests = [];
 
 const leaveBalanceAllocation = {

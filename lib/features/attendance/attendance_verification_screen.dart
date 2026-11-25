@@ -410,7 +410,7 @@ class _AttendanceVerificationScreenState
           ),
           const SizedBox(height: 15),
           Text(
-            'REBS Technologies',
+            'Teqbae innovations and solutions',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -419,7 +419,7 @@ class _AttendanceVerificationScreenState
           ),
           const SizedBox(height: 5),
           Text(
-            'Bengaluru, Karnataka',
+            'Kochi, Kerala, India',
             style: TextStyle(fontSize: 12, color: secondaryText),
           ),
           const SizedBox(height: 14),

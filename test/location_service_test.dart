@@ -8,8 +8,8 @@ import 'package:hrms/features/attendance/services/location_service.dart';
 void main() {
   group('LocationService', () {
     test('office coordinates produce a zero-distance fix', () async {
-      expect(AppConfig.officeLatitude, 12.915577);
-      expect(AppConfig.officeLongitude, 77.628337);
+      expect(AppConfig.officeLatitude, 10.027786);
+      expect(AppConfig.officeLongitude, 76.336622);
 
       final result = await _serviceFor(
         _position(AppConfig.officeLatitude, AppConfig.officeLongitude),

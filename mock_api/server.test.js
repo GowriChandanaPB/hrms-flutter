@@ -35,8 +35,8 @@ test("employee endpoint returns the configured PG office", async () => {
   const data = await response.json();
 
   assert.equal(response.status, 200);
-  assert.equal(data.office.latitude, 12.915577);
-  assert.equal(data.office.longitude, 77.628337);
+  assert.equal(data.office.latitude, 10.027786);
+  assert.equal(data.office.longitude, 76.336622);
   assert.equal(data.office.radiusInMetres, 200);
   assert.equal(data.office.timezone, "Asia/Kolkata");
   assert.deepEqual(OFFICE_LOCATION, data.office);
@@ -145,9 +145,9 @@ test("rejects events outside 200 metres with HTTP 422", async () => {
 
 test("rejects non-numeric and invalid coordinate values", async () => {
   for (const [id, latitude, longitude] of [
-    ["string-coordinate", "12.915577", 77.628337],
-    ["invalid-latitude", 91, 77.628337],
-    ["invalid-longitude", 12.915577, 181],
+    ["string-coordinate", "10.027786", 76.336622],
+    ["invalid-latitude", 91, 76.336622],
+    ["invalid-longitude", 10.027786, 181],
   ]) {
     const response = await postEvent(makeEvent(id, latitude, longitude));
     assert.equal(response.status, 400);

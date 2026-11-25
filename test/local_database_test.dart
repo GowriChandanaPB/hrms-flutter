@@ -137,8 +137,8 @@ AttendanceEventModel _event({
     employeeId: 'REBS-1024',
     type: type,
     timestamp: timestamp ?? DateTime.utc(2026, 11, 24, 3),
-    latitude: 12.915577,
-    longitude: 77.628337,
+    latitude: 10.027786,
+    longitude: 76.336622,
     syncStatus: AttendanceSyncStatus.pending,
   );
 }

@@ -11,8 +11,8 @@ class AppConfig {
     defaultValue: 'REBS-1024',
   );
 
-  static const double officeLatitude = 12.915577;
-  static const double officeLongitude = 77.628337;
+  static const double officeLatitude = 10.027786;
+  static const double officeLongitude = 76.336622;
   static const double allowedOfficeRadiusMetres = 200.0;
   static const double maximumLocationAccuracyMetres = 100.0;
   static const String timezone = 'Asia/Kolkata';
